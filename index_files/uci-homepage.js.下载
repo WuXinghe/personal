@@ -1,0 +1,91 @@
+(function($) {
+    "use strict";
+    
+    // PAGE NAV //
+    
+    var main = $('main'),
+    	windowTop = 0,
+		scrolled = false,
+		scrollDirection = false,
+		pageNav = $('#nav-page'),
+		navLinks = false,
+		navHeight = false,
+		insertReference = $('header + hr'),
+		insertPoint = false,
+		sections = main.find('section'),
+		windowHalf = false,
+		sectionTops = false,
+		activeSection = false;
+	
+	navLinks = pageNav.find('a');
+	insertPoint = insertReference.offset().top + insertReference.height();
+	pageNav.find('a').bind('click', function(e) {
+		e.preventDefault();
+		var destination = $(this).attr('href'),
+			scrollPoint = $(destination).offset().top - navHeight;
+		$('html, body').animate({
+			scrollTop: scrollPoint
+		}, 800, 'swing');
+	});
+	
+
+	setInterval(function() {
+		if (scrolled) {
+			if (scrollDirection == 'up') {
+				pageNav.css('opacity',1);
+			} else {
+				pageNav.css('opacity',0);
+			}
+			scrolled = false;
+		}
+	}, 250);
+
+	
+	$(window).bind('load resize', function() {
+		navHeight = pageNav.height();
+		insertPoint = insertReference.offset().top + insertReference.height();
+		sectionTops = [];
+		sections.each(function() {
+			sectionTops.push($(this).offset().top);
+		});
+	});
+	
+	$(window).bind('scroll', function() {
+		
+		// detect scroll direction
+		if ($(window).scrollTop() < windowTop) {
+			scrollDirection = 'up';
+		} else {
+			scrollDirection = 'down';
+		}
+		windowTop = $(window).scrollTop();
+		windowHalf = $(window).height()/2 + windowTop;
+		
+		// toggle nav position
+
+		if (windowTop > insertPoint) {
+			pageNav.addClass('fixed');
+			main.css({'padding-top':navHeight+'px'});
+			scrolled = true;
+		}
+		if (windowTop < insertPoint) {
+			pageNav.removeClass('fixed').removeAttr('style');
+			main.removeAttr('style');
+		}
+
+		
+		// detect active section
+
+		$(sectionTops).each(function(key, value) {
+			if (value < windowHalf) {
+				activeSection = key + 1;
+			}
+		});
+
+		navLinks.removeClass('active');
+		$(navLinks[activeSection]).addClass('active');
+		activeSection = false;
+		
+	});
+		
+}(jQuery));
